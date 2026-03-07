@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>คู่มือการใช้งานแอปพลิเคชัน ศพด. ทต.หัวดง</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        mali: ['Mali', 'cursive'],
+                    },
+                    colors: {
+                        'kid-pink': '#FF9A9E',
+                        'kid-blue': '#74D0F6', 
+                        'kid-yellow': '#FFEF96',
+                        'kid-green': '#95E1D3',
+                        'kid-purple': '#D4C4FB'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts: Mali -->
+    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Mali', cursive;
+            background-color: #FFF9F0;
+            background-image: radial-gradient(#FFD1D1 1.5px, transparent 1.5px), radial-gradient(#FFD1D1 1.5px, #FFF9F0 1.5px);
+            background-size: 24px 24px;
+            background-position: 0 0, 12px 12px;
+            color: #4A5568;
+        }
+        
+        /* Smooth scrolling */
+        html { scroll-behavior: smooth; }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #FFF5F5; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #FFB7B2; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #FF9E9E; }
+        
+        .tab-active {
+            background-color: white;
+            border-left: 6px solid #FF8E8E;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        const { useState, useEffect } = React;
+
+        // --- Icon System Setup ---
+        const createLucideIcon = (iconName) => ({ size = 24, className, strokeWidth = 2.5, ...props }) => {
+            const iconData = lucide.icons[iconName];
+            if (!iconData) return null;
+            return (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props} dangerouslySetInnerHTML={{ __html: iconData.map(child => { const [tag, attrs] = child; const attrString = Object.entries(attrs).map(([key, val]) => `${key}="${val}"`).join(' '); return `<${tag} ${attrString} />`; }).join('') }} />
+            );
+        };
+
+        // Icons Used
+        const BookOpen = createLucideIcon('BookOpen');
+        const Download = createLucideIcon('Download');
+        const Home = createLucideIcon('Home');
+        const Smartphone = createLucideIcon('Smartphone');
+        const Baby = createLucideIcon('Baby');
+        const UploadCloud = createLucideIcon('CloudUpload');
+        const Calendar = createLucideIcon('Calendar');
+        const Megaphone = createLucideIcon('Megaphone');
+        const Phone = createLucideIcon('Phone');
+        const Info = createLucideIcon('Info');
+        const CheckCircle = createLucideIcon('CheckCircle');
+        const Command = createLucideIcon('Command');
+        const Menu = createLucideIcon('Menu');
+        const X = createLucideIcon('X');
+        const Monitor = createLucideIcon('Monitor');
+        const ShieldAlert = createLucideIcon('ShieldAlert');
+        const LinkIcon = createLucideIcon('Link');
+        const HelpCircle = createLucideIcon('HelpCircle');
+
+        const manualSections = [
+            { id: 'intro', title: 'หน้าแรก (แนะนำแอป)', icon: <Home />, color: 'text-kid-blue', bg: 'bg-blue-100' },
+            { id: 'install', title: 'วิธีติดตั้งแอปพลิเคชัน', icon: <Download />, color: 'text-rose-500', bg: 'bg-rose-100' },
+            { id: 'menu_basic', title: 'เมนูพื้นฐาน (ประวัติ, บุคลากร)', icon: <Info />, color: 'text-emerald-500', bg: 'bg-emerald-100' },
+            { id: 'menu_student', title: 'การดูข้อมูลเด็ก', icon: <Baby />, color: 'text-amber-500', bg: 'bg-amber-100' },
+            { id: 'menu_homework', title: 'การส่งงานออนไลน์', icon: <UploadCloud />, color: 'text-indigo-500', bg: 'bg-indigo-100' },
+            { id: 'menu_lessons', title: 'บทเรียนออนไลน์', icon: <BookOpen />, color: 'text-purple-500', bg: 'bg-purple-100' },
+            { id: 'menu_news', title: 'ข่าวสารประชาสัมพันธ์', icon: <Megaphone />, color: 'text-pink-500', bg: 'bg-pink-100' },
+            { id: 'menu_calendar', title: 'ปฏิทินกิจกรรม', icon: <Calendar />, color: 'text-orange-500', bg: 'bg-orange-100' },
+            { id: 'menu_contact', title: 'การติดต่อ & แจ้งปัญหา', icon: <Phone />, color: 'text-teal-500', bg: 'bg-teal-100' },
+            { id: 'menu_itinfo', title: 'ข้อมูลสารสนเทศ', icon: <Monitor />, color: 'text-violet-500', bg: 'bg-violet-100' },
+            { id: 'menu_health', title: 'ข้อมูลโรคติดต่อ', icon: <ShieldAlert />, color: 'text-rose-500', bg: 'bg-rose-100' },
+            { id: 'menu_links', title: 'ลิงก์ที่เกี่ยวข้อง', icon: <LinkIcon />, color: 'text-fuchsia-500', bg: 'bg-fuchsia-100' },
+            { id: 'menu_appinfo', title: 'เกี่ยวกับ App', icon: <HelpCircle />, color: 'text-sky-500', bg: 'bg-sky-100' }
+        ];
+
+        // คอมโพเนนต์หัวข้อหลัก
+        const TopicHeader = ({ title, icon, colorClass, desc }) => (
+            <div className="bg-white rounded-[1.5rem] sm:rounded-[2rem] p-5 sm:p-6 shadow-sm border-b-4 border-slate-200 mb-6 sm:mb-8 animate-[fadeIn_0.5s_ease-out]">
+                <div className="flex items-center gap-3 sm:gap-4">
+                    <div className={`p-3 rounded-2xl shrink-0 ${colorClass}`}>{icon}</div>
+                    <h2 className="text-xl sm:text-2xl font-black text-slate-700 leading-tight">{title}</h2>
+                </div>
+                {desc && <p className="text-sm sm:text-base text-slate-600 mt-4 font-bold bg-slate-50 p-3 rounded-xl border border-slate-100">{desc}</p>}
+            </div>
+        );
+
+        // คอมโพเนนต์กล่องคำอธิบายแต่ละขั้นตอน (แยกอิสระเพื่อให้ใส่รูปภาพง่าย)
+        const StepCard = ({ number, title, desc, imageDesc, colorClass="bg-kid-blue", imgSrc }) => {
+            const images = Array.isArray(imgSrc) ? imgSrc : (imgSrc ? [imgSrc] : []);
+            
+            return (
+                <div className="bg-white p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] shadow-md border-4 border-slate-100 mb-6 sm:mb-8 relative overflow-hidden animate-[fadeIn_0.5s_ease-out] group hover:border-slate-200 transition-all">
+                    <div className="flex items-center gap-3 sm:gap-4 mb-4">
+                        <div className={`w-10 h-10 sm:w-12 sm:h-12 text-white rounded-full flex items-center justify-center font-black text-lg sm:text-xl shadow-md border-2 sm:border-4 border-white shrink-0 ${colorClass}`}>
+                            {number}
+                        </div>
+                        <h4 className="font-bold text-lg sm:text-xl text-slate-800">{title}</h4>
+                    </div>
+                    <div className="text-sm sm:text-base mb-5 leading-relaxed text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        {desc}
+                    </div>
+                    {/* บริเวณสำหรับวางรูปภาพ */}
+                    {images.length > 0 ? (
+                        <div className={`w-full bg-[#F8FAFC] rounded-xl ${images.length > 1 ? 'grid grid-cols-1 sm:grid-cols-2 gap-4' : 'flex flex-col items-center justify-center'} border-4 border-slate-100 p-2 relative overflow-hidden`}>
+                            {images.map((src, idx) => (
+                                <img key={idx} src={src} alt={`${imageDesc || title} ${idx + 1}`} className="max-w-full h-auto rounded-lg object-contain shadow-sm hover:scale-105 transition-transform duration-500 mx-auto" style={{ maxHeight: '500px' }} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="w-full bg-[#F8FAFC] aspect-[4/3] sm:aspect-video rounded-xl flex flex-col items-center justify-center border-4 border-dashed border-slate-300 text-slate-400 hover:bg-slate-100 transition-colors p-4 relative overflow-hidden cursor-pointer">
+                            <div className="relative z-10 flex flex-col items-center">
+                                <span className="text-4xl sm:text-5xl mb-2 group-hover:scale-110 transition-transform duration-300">📸</span>
+                                <span className="font-bold text-sm sm:text-base text-center text-slate-500">พื้นที่สำหรับวางรูปภาพ</span>
+                                <span className="text-xs sm:text-sm text-center mt-1 text-slate-400">({imageDesc})</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('intro');
+            const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+            // Auto close mobile menu when tab changes
+            useEffect(() => {
+                setIsMobileMenuOpen(false);
+                window.scrollTo(0, 0);
+            }, [activeTab]);
+
+            const renderContent = () => {
+                switch (activeTab) {
+                    case 'intro':
+                        return (
+                            <div className="bg-white rounded-[1.5rem] sm:rounded-[2rem] p-6 sm:p-8 shadow-md border-4 border-blue-100 mb-6 sm:mb-8 animate-[fadeIn_0.5s_ease-out]">
+                                <div className="text-center mb-6 sm:mb-8">
+                                    <img src="https://res.cloudinary.com/dygneumft/image/upload/v1767149852/logo%20%E0%B8%A8%E0%B8%9E%E0%B8%94/66597422_390220828293072_2595301866271145984_n_oxazyt.jpg" alt="Logo" className="w-24 h-24 sm:w-32 sm:h-32 rounded-full mx-auto mb-4 border-4 border-white shadow-lg" />
+                                    <h3 className="text-xl sm:text-2xl font-black text-kid-blue mb-2">แอปพลิเคชัน ศพด. ทต.หัวดง</h3>
+                                    <p className="text-sm sm:text-lg bg-yellow-50 inline-block px-3 sm:px-4 py-2 rounded-xl border border-yellow-200 text-balance leading-tight">คู่มือนี้จะช่วยให้คุณใช้งานแอปพลิเคชันได้อย่างง่ายดาย 🎈</p>
+                                </div>
+                                <p className="leading-relaxed text-center text-sm sm:text-base bg-slate-50 p-4 rounded-xl border border-slate-100 mb-6 sm:mb-8">
+                                    แอปพลิเคชันนี้ถูกออกแบบมาเพื่อให้ผู้ปกครองและบุคลากร สามารถเข้าถึงข้อมูลข่าวสาร ติดตามพัฒนาการของเด็กๆ และร่วมกิจกรรมต่างๆ ของศูนย์พัฒนาเด็กเล็กเทศบาลตำบลหัวดงได้อย่างสะดวกสบายผ่านโทรศัพท์มือถือ
+                                </p>
+                                
+                                <div className="w-full bg-[#F8FAFC] rounded-[1.5rem] flex flex-col items-center justify-center border-4 border-blue-50 p-3 sm:p-4 relative overflow-hidden mb-6 sm:mb-8 shadow-sm">
+                                    <span className="bg-blue-100 text-blue-600 text-xs font-bold px-3 py-1 rounded-full mb-3">📸 หน้าแรกของแอปพลิเคชัน</span>
+                                    <img src="https://res.cloudinary.com/dygneumft/image/upload/v1772896860/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%AB%E0%B8%99%E0%B9%89%E0%B8%B2%E0%B8%AB%E0%B8%A5%E0%B8%B1%E0%B8%81/S__614413_dlsjeb.jpg" alt="หน้าแรกของแอปพลิเคชัน" className="max-w-full h-auto rounded-xl object-contain shadow-md hover:scale-[1.02] transition-transform duration-500" style={{ maxHeight: '500px' }} />
+                                </div>
+
+                                <div className="mt-6 sm:mt-8">
+                                    <h4 className="font-bold text-base sm:text-lg mb-4 text-slate-700 flex items-center gap-2"><BookOpen className="text-kid-blue"/> หัวข้อในคู่มือนี้</h4>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                        {manualSections.slice(1).map(sec => (
+                                            <button key={sec.id} onClick={() => setActiveTab(sec.id)} className="flex items-center gap-3 bg-white p-3 rounded-xl shadow-sm border-2 border-slate-50 hover:border-blue-100 transition text-left active:scale-95">
+                                                <div className={`p-2 rounded-lg ${sec.bg} ${sec.color} shrink-0`}>{sec.icon}</div>
+                                                <span className="font-bold text-sm text-slate-700 leading-tight">{sec.title}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+
+                    case 'install':
+                        return (
+                            <>
+                                <TopicHeader 
+                                    title="วิธีติดตั้งแอปพลิเคชัน (ไม่ต้องโหลดผ่าน App Store/Play Store)" 
+                                    icon={<Download size={32} />} 
+                                    colorClass="bg-rose-100 text-rose-600"
+                                />
+
+                                {/* กล่อง QR Code */}
+                                <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 items-center bg-white p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] shadow-md border-4 border-rose-100 mb-6 sm:mb-8 animate-[fadeIn_0.5s_ease-out]">
+                                    <div className="w-40 sm:w-48 flex-shrink-0 text-center">
+                                        <div className="bg-[#FFF5F5] p-3 rounded-2xl shadow-inner mb-2 border-2 border-rose-200">
+                                            <img src="https://res.cloudinary.com/dygneumft/image/upload/v1770859758/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B/QR_app_%E0%B8%A8%E0%B8%9E%E0%B8%94_srncv3.png" alt="QR Code" className="w-full h-auto rounded-xl" />
+                                        </div>
+                                        <span className="text-xs sm:text-sm font-bold text-rose-600">สแกน QR Code</span>
+                                    </div>
+                                    <div className="flex-1 text-center sm:text-left w-full">
+                                        <h3 className="text-lg sm:text-xl font-black text-slate-800 mb-2 sm:mb-3">ติดตั้งง่ายๆ ไว้บนหน้าจอมือถือ</h3>
+                                        <p className="mb-4 text-sm font-bold text-slate-600">คุณสามารถติดตั้งแอปนี้ได้ทันที โดยไม่ต้องผ่านสโตร์ เพียงแค่ใช้ Browser ในมือถือของคุณสแกนรูปภาพ QR Code ด้านซ้าย หรือกดปุ่มด้านล่าง</p>
+                                        <a href="https://child-huadong.glide.page" target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 bg-rose-500 text-white px-5 py-3 rounded-xl font-bold hover:bg-rose-600 transition shadow-md text-sm w-full sm:w-auto text-decoration-none">
+                                            <Smartphone size={18} className="shrink-0" /> คลิกลิงก์เพื่อเปิดแอป
+                                        </a>
+                                    </div>
+                                </div>
+
+                                {/* กล่องอธิบาย iOS */}
+                                <div className="bg-white p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] shadow-md border-4 border-slate-100 mb-6 sm:mb-8 relative animate-[fadeIn_0.5s_ease-out]">
+                                    <h4 className="font-black text-lg sm:text-xl text-slate-800 mb-4 flex items-center gap-2">
+                                        <div className="bg-slate-100 p-2 rounded-lg text-slate-600"><Command size={24} /></div>
+                                        สำหรับ iPhone / iPad (iOS)
+                                    </h4>
+                                    <ul className="space-y-4 mb-6 bg-slate-50 p-4 sm:p-5 rounded-xl border border-slate-100">
+                                        <li className="flex gap-3">
+                                            <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs shrink-0">1</div>
+                                            <p className="text-sm sm:text-base">เปิดลิงก์หรือสแกน QR Code ด้วยแอป <strong>Safari</strong></p>
+                                        </li>
+                                        <li className="flex gap-3">
+                                            <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs shrink-0">2</div>
+                                            <p className="text-sm sm:text-base">แตะไอคอน <strong>"แชร์" (Share)</strong> สี่เหลี่ยมมีลูกศรชี้ขึ้น ที่แถบเมนูด้านล่าง</p>
+                                        </li>
+                                        <li className="flex gap-3">
+                                            <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs shrink-0">3</div>
+                                            <p className="text-sm sm:text-base">เลื่อนหาและเลือก <strong>"เพิ่มไปยังหน้าจอโฮม" (Add to Home Screen)</strong></p>
+                                        </li>
+                                        <li className="flex gap-3">
+                                            <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs shrink-0">4</div>
+                                            <p className="text-sm sm:text-base">แตะ <strong>"เพิ่ม" (Add)</strong> มุมขวาบน แอปจะไปอยู่บนหน้าจอมือถือของคุณทันที</p>
+                                        </li>
+                                    </ul>
+                                    <div className="w-full bg-[#F8FAFC] rounded-xl grid grid-cols-2 gap-3 border-4 border-slate-100 p-3">
+                                        <img src="https://res.cloudinary.com/dygneumft/image/upload/v1772900841/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%95%E0%B8%B4%E0%B8%94%E0%B8%95%E0%B8%B1%E0%B9%89%E0%B8%87%20ios/S__76054538_0_ggsi70.jpg" alt="ภาพประกอบขั้นตอนที่ 1 (iOS)" className="w-full h-auto rounded-lg object-cover shadow-sm hover:scale-105 transition-transform duration-300" />
+                                        <img src="https://res.cloudinary.com/dygneumft/image/upload/v1772901175/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%95%E0%B8%B4%E0%B8%94%E0%B8%95%E0%B8%B1%E0%B9%89%E0%B8%87%20ios/S__42680369_0_qdpf3c.jpg" alt="ภาพประกอบขั้นตอนที่ 2 (iOS)" className="w-full h-auto rounded-lg object-cover shadow-sm hover:scale-105 transition-transform duration-300" />
+                                        <img src="https://res.cloudinary.com/dygneumft/image/upload/v1772901176/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%95%E0%B8%B4%E0%B8%94%E0%B8%95%E0%B8%B1%E0%B9%89%E0%B8%87%20ios/S__42680370_0_fll8ka.jpg" alt="ภาพประกอบขั้นตอนที่ 3 (iOS)" className="w-full h-auto rounded-lg object-cover shadow-sm hover:scale-105 transition-transform duration-300" />
+                                        <img src="https://res.cloudinary.com/dygneumft/image/upload/v1772901177/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%95%E0%B8%B4%E0%B8%94%E0%B8%95%E0%B8%B1%E0%B9%89%E0%B8%87%20ios/S__42680371_0_pefnnd.jpg" alt="ภาพประกอบขั้นตอนที่ 4 (iOS)" className="w-full h-auto rounded-lg object-cover shadow-sm hover:scale-105 transition-transform duration-300" />
+                                    </div>
+                                </div>
+
+                                {/* กล่องอธิบาย Android */}
+                                <div className="bg-white p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] shadow-md border-4 border-slate-100 mb-6 sm:mb-8 relative animate-[fadeIn_0.5s_ease-out]">
+                                    <h4 className="font-black text-lg sm:text-xl text-slate-800 mb-4 flex items-center gap-2">
+                                        <div className="bg-green-100 p-2 rounded-lg text-green-600"><Smartphone size={24} /></div>
+                                        สำหรับ Android
+                                    </h4>
+                                    <ul className="space-y-4 mb-6 bg-slate-50 p-4 sm:p-5 rounded-xl border border-slate-100">
+                                        <li className="flex gap-3">
+                                            <div className="w-6 h-6 rounded-full bg-green-200 text-green-700 flex items-center justify-center font-bold text-xs shrink-0">1</div>
+                                            <p className="text-sm sm:text-base">เปิดลิงก์หรือสแกน QR Code ด้วยแอป <strong>Google Chrome</strong></p>
+                                        </li>
+                                        <li className="flex gap-3">
+                                            <div className="w-6 h-6 rounded-full bg-green-200 text-green-700 flex items-center justify-center font-bold text-xs shrink-0">2</div>
+                                            <p className="text-sm sm:text-base">แอปอาจจะแสดงปุ่ม <strong>"ติดตั้งแอปพลิเคชัน" (Install App)</strong> ให้แตะได้เลย</p>
+                                        </li>
+                                        <li className="flex gap-3">
+                                            <div className="w-6 h-6 rounded-full bg-green-200 text-green-700 flex items-center justify-center font-bold text-xs shrink-0">3</div>
+                                            <p className="text-sm sm:text-base">หากไม่มีปุ่ม ให้แตะที่ <strong>จุด 3 จุด</strong> มุมขวาบนของ Browser</p>
+                                        </li>
+                                        <li className="flex gap-3">
+                                            <div className="w-6 h-6 rounded-full bg-green-200 text-green-700 flex items-center justify-center font-bold text-xs shrink-0">4</div>
+                                            <p className="text-sm sm:text-base">เลือก <strong>"เพิ่มลงในหน้าจอหลัก" (Add to Home screen)</strong> หรือ <strong>"ติดตั้งแอป" (Install app)</strong></p>
+                                        </li>
+                                    </ul>
+                                    <div className="w-full bg-[#F8FAFC] aspect-[4/3] sm:aspect-video rounded-xl flex flex-col items-center justify-center border-4 border-dashed border-slate-300 text-slate-400 p-4 relative overflow-hidden cursor-pointer group">
+                                        <span className="text-4xl sm:text-5xl mb-2 group-hover:scale-110 transition-transform">📸</span>
+                                        <span className="font-bold text-sm sm:text-base">ภาพประกอบการติดตั้ง (Android)</span>
+                                    </div>
+                                </div>
+                            </>
+                        );
+
+                    case 'menu_basic':
+                        return (
+                            <>
+                                <TopicHeader 
+                                    title="การใช้งานเมนูพื้นฐาน" 
+                                    icon={<Info size={32} />} 
+                                    colorClass="bg-emerald-100 text-emerald-600"
+                                    desc="เมนูเหล่านี้ให้ข้อมูลเบื้องต้นเกี่ยวกับศูนย์พัฒนาเด็กเล็กของเราครับ"
+                                />
+                                <StepCard 
+                                    number="1" 
+                                    colorClass="bg-emerald-500"
+                                    title="เมนู ประวัติ" 
+                                    desc="เมื่อแตะที่เมนูนี้ คุณจะสามารถอ่านประวัติความเป็นมา และการเปลี่ยนแปลงของศูนย์พัฒนาเด็กเล็กตั้งแต่อดีตจนถึงปัจจุบัน"
+                                    imageDesc="หน้าจอแสดงหน้าประวัติไทม์ไลน์"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772896187/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B9%80%E0%B8%A1%E0%B8%99%E0%B8%B9%E0%B8%9E%E0%B8%B7%E0%B9%89%E0%B8%99%E0%B8%90%E0%B8%B2%E0%B8%99/S__42680327_0_ahbnav.jpg"
+                                />
+                                <StepCard 
+                                    number="2" 
+                                    colorClass="bg-emerald-500"
+                                    title="เมนู เกี่ยวกับ" 
+                                    desc="ดูข้อมูลทั่วไปของศูนย์ฯ เช่น ความหมายของตราสัญลักษณ์ สีประจำศูนย์ ดอกไม้ ปรัชญา อัตลักษณ์ และเอกลักษณ์"
+                                    imageDesc="หน้าจอแสดงข้อมูลเกี่ยวกับศูนย์ฯ และตราสัญลักษณ์"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772896187/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B9%80%E0%B8%A1%E0%B8%99%E0%B8%B9%E0%B8%9E%E0%B8%B7%E0%B9%89%E0%B8%99%E0%B8%90%E0%B8%B2%E0%B8%99/S__42680328_0_gnibuc.jpg"
+                                />
+                                <StepCard 
+                                    number="3" 
+                                    colorClass="bg-emerald-500"
+                                    title="เมนู บุคลากร" 
+                                    desc="ทำความรู้จักกับคุณครูและบุคลากรของเรา โดยจะแสดงเป็นโครงสร้างบุคลากร พร้อมรูปภาพ ชื่อ และตำแหน่งอย่างชัดเจน"
+                                    imageDesc="หน้าจอแสดงโครงสร้างและรูปคุณครู"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772896187/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B9%80%E0%B8%A1%E0%B8%99%E0%B8%B9%E0%B8%9E%E0%B8%B7%E0%B9%89%E0%B8%99%E0%B8%90%E0%B8%B2%E0%B8%99/S__42680326_0_kbjeea.jpg"
+                                />
+                                <StepCard 
+                                    number="4" 
+                                    colorClass="bg-emerald-500"
+                                    title="เมนู แผนผัง" 
+                                    desc="ดูรูปภาพแผนผังบริเวณศูนย์ฯ และสามารถกดปุ่มเปิดแผนที่ Google Maps เพื่อใช้นำทางมายังสถานที่จริงได้ทันที"
+                                    imageDesc="หน้าจอแสดงรูปแผนผังและปุ่มนำทาง Google Maps"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772896187/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B9%80%E0%B8%A1%E0%B8%99%E0%B8%B9%E0%B8%9E%E0%B8%B7%E0%B9%89%E0%B8%99%E0%B8%90%E0%B8%B2%E0%B8%99/S__42680325_0_fkszcd.jpg"
+                                />
+                                <StepCard 
+                                    number="5" 
+                                    colorClass="bg-emerald-500"
+                                    title="เมนู วิสัยทัศน์" 
+                                    desc="อ่านวิสัยทัศน์ พันธกิจ และเป้าหมายในการจัดการศึกษาและการดูแลเด็กๆ ของศูนย์พัฒนาเด็กเล็ก"
+                                    imageDesc="หน้าจอแสดงวิสัยทัศน์และเป้าหมาย"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772896187/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B9%80%E0%B8%A1%E0%B8%99%E0%B8%B9%E0%B8%9E%E0%B8%B7%E0%B9%89%E0%B8%99%E0%B8%90%E0%B8%B2%E0%B8%99/S__42680324_0_hfkwj5.jpg"
+                                />
+                            </>
+                        );
+
+                    case 'menu_student':
+                        return (
+                            <>
+                                <TopicHeader 
+                                    title="การดูข้อมูลเด็ก (รายงานผลพัฒนาการ)" 
+                                    icon={<Baby size={32} />} 
+                                    colorClass="bg-amber-100 text-amber-600"
+                                    desc="ข้อควรทราบ: เพื่อความเป็นส่วนตัวของเด็กๆ ข้อมูลส่วนนี้จะถูกป้องกันไว้ ผู้ปกครองต้องใช้ 'รหัสประจำตัวนักเรียน' ในการค้นหาครับ"
+                                />
+                                <StepCard 
+                                    number="1" 
+                                    colorClass="bg-amber-500"
+                                    title="เข้าสู่เมนู ข้อมูลเด็ก" 
+                                    desc="แตะที่ไอคอนรูปเด็กน้อย (ข้อมูลเด็ก) จากหน้าจอหลัก"
+                                    imageDesc="ชี้ที่ปุ่มเมนูข้อมูลเด็ก"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772897297/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%82%E0%B9%89%E0%B8%AD%E0%B8%A1%E0%B8%B9%E0%B8%A5%E0%B9%80%E0%B8%94%E0%B9%87%E0%B8%81/S__42680330_zqm6i3.jpg"
+                                />
+                                <StepCard 
+                                    number="2" 
+                                    colorClass="bg-amber-500"
+                                    title="กรอกรหัสประจำตัวนักเรียน" 
+                                    desc="ในหน้าจอ จะมีช่องสำหรับค้นหา ให้พิมพ์ รหัสประจำตัวนักเรียน (สามารถขอรับได้จากครูประจำชั้น) ลงในช่องค้นหา"
+                                    imageDesc="หน้าจอแสดงช่องค้นหาและคีย์บอร์ด"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772897298/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%82%E0%B9%89%E0%B8%AD%E0%B8%A1%E0%B8%B9%E0%B8%A5%E0%B9%80%E0%B8%94%E0%B9%87%E0%B8%81/S__42680334_0_nigopy.jpg"
+                                />
+                                <StepCard 
+                                    number="3" 
+                                    colorClass="bg-amber-500"
+                                    title="ดูผลรายงานพัฒนาการ" 
+                                    desc="เมื่อค้นหาสำเร็จ ระบบจะแสดงข้อมูลและผลการประเมินพัฒนาการของเด็กเป็นรายบุคคล หากต้องการดูแบบเต็มจอ สามารถแตะที่ปุ่ม 'เปิดเต็มจอ' ด้านล่างได้"
+                                    imageDesc="หน้าจอแสดงผลการเรียนและปุ่มเปิดเต็มจอ"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772897298/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%82%E0%B9%89%E0%B8%AD%E0%B8%A1%E0%B8%B9%E0%B8%A5%E0%B9%80%E0%B8%94%E0%B9%87%E0%B8%81/S__42680335_0_jbfoax.jpg"
+                                />
+                            </>
+                        );
+
+                    case 'menu_homework':
+                        return (
+                            <>
+                                <TopicHeader 
+                                    title="การส่งงานออนไลน์" 
+                                    icon={<UploadCloud size={32} />} 
+                                    colorClass="bg-indigo-100 text-indigo-600"
+                                    desc="ในกรณีที่มีการบ้าน หรือกิจกรรมที่ต้องส่งรูปภาพให้คุณครู สามารถส่งผ่านแอปได้เลยครับ"
+                                />
+                                <StepCard 
+                                    number="1" 
+                                    colorClass="bg-indigo-500"
+                                    title="เข้าสู่เมนู ส่งงาน" 
+                                    desc="แตะที่เมนูรูปก้อนเมฆ (ส่งงาน) บนหน้าหลัก ระบบจะแสดงฟอร์มสำหรับส่งงาน"
+                                    imageDesc="หน้าจอแสดงฟอร์มให้กรอกข้อมูล"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772897614/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%AA%E0%B9%88%E0%B8%87%E0%B8%87%E0%B8%B2%E0%B8%99/S__42680337_0_rcdack.jpg"
+                                />
+                                <StepCard 
+                                    number="2" 
+                                    colorClass="bg-indigo-500"
+                                    title="กรอกข้อมูลให้ครบถ้วน" 
+                                    desc="พิมพ์ชื่อ-นามสกุล หรือข้อมูลอื่นๆ ตามที่แบบฟอร์มระบุไว้ให้ครบถ้วน"
+                                    imageDesc="หน้าจอกำลังพิมพ์ชื่อในฟอร์ม"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772897615/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%AA%E0%B9%88%E0%B8%87%E0%B8%87%E0%B8%B2%E0%B8%99/S__42680338_0_fomsmv.jpg"
+                                />
+                                <StepCard 
+                                    number="3" 
+                                    colorClass="bg-indigo-500"
+                                    title="อัปโหลดรูปภาพผลงาน" 
+                                    desc="แตะที่ปุ่ม 'เพิ่มไฟล์' หรือ 'อัปโหลด' จากนั้นเลือกรูปภาพผลงานของเด็กๆ จากมือถือของคุณ (แนะนำให้ถ่ายภาพในที่มีแสงสว่างชัดเจน)"
+                                    imageDesc="หน้าจอแสดงปุ่มอัปโหลดและเลือกรูปจากคลังภาพ"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772897615/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%AA%E0%B9%88%E0%B8%87%E0%B8%87%E0%B8%B2%E0%B8%99/S__42680339_0_o5u30e.jpg"
+                                />
+                                <StepCard 
+                                    number="4" 
+                                    colorClass="bg-indigo-500"
+                                    title="กดยืนยันการส่ง" 
+                                    desc="ตรวจทานข้อมูลและรูปภาพให้เรียบร้อย แล้วกดปุ่ม 'ส่ง' (Submit) ด้านล่างสุด เป็นอันเสร็จสิ้นครับ"
+                                    imageDesc="หน้าจอแสดงปุ่มส่ง และข้อความขอบคุณ"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772897615/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%AA%E0%B9%88%E0%B8%87%E0%B8%87%E0%B8%B2%E0%B8%99/S__42680340_0_lzf4zv.jpg"
+                                />
+                            </>
+                        );
+                        
+                    case 'menu_lessons':
+                        return (
+                            <>
+                                <TopicHeader 
+                                    title="บทเรียนออนไลน์" 
+                                    icon={<BookOpen size={32} />} 
+                                    colorClass="bg-purple-100 text-purple-600"
+                                    desc="แหล่งรวมสื่อการสอนและวิดีโอเสริมพัฒนาการสำหรับเด็กๆ ให้เรียนรู้ได้ทุกที่ทุกเวลา"
+                                />
+                                <StepCard 
+                                    number="1" 
+                                    colorClass="bg-purple-500"
+                                    title="เข้าสู่เมนู บทเรียน" 
+                                    desc="แตะที่ไอคอนรูปหนังสือ (บทเรียน) บนหน้าจอหลักของแอปพลิเคชัน"
+                                    imageDesc="ชี้ที่ปุ่มเมนูบทเรียน"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772897818/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%9A%E0%B8%97%E0%B9%80%E0%B8%A3%E0%B8%B5%E0%B8%A2%E0%B8%99/S__42680342_0_hw9ghu.jpg"
+                                />
+                                <StepCard 
+                                    number="2" 
+                                    colorClass="bg-purple-500"
+                                    title="เลือกหน่วยการเรียนรู้" 
+                                    desc="ระบบจะแสดงรายชื่อหน่วยการเรียนรู้ต่างๆ ที่คุณครูเตรียมไว้ ให้ผู้ปกครองแตะเลือกหัวข้อที่สนใจหรือตามที่คุณครูมอบหมาย"
+                                    imageDesc="หน้าจอแสดงรายการหน่วยการเรียนรู้เรียงกัน"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772897819/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%9A%E0%B8%97%E0%B9%80%E0%B8%A3%E0%B8%B5%E0%B8%A2%E0%B8%99/S__42680343_0_ayuvsi.jpg"
+                                />
+                                <StepCard 
+                                    number="3" 
+                                    colorClass="bg-purple-500"
+                                    title="รับชมสื่อการสอนและวิดีโอ" 
+                                    desc="เด็กๆ สามารถรับชมวิดีโอ นิทาน หรือสื่อแบบมีปฏิสัมพันธ์ (Interactive) ที่อยู่ภายในหน่วยการเรียนรู้นั้นๆ ได้ทันที"
+                                    imageDesc="หน้าจอขณะกำลังเล่นวิดีโอสื่อการสอน"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772897820/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%9A%E0%B8%97%E0%B9%80%E0%B8%A3%E0%B8%B5%E0%B8%A2%E0%B8%99/S__42680344_0_gfk6oq.jpg"
+                                />
+                                <StepCard 
+                                    number="4" 
+                                    colorClass="bg-purple-500"
+                                    title="ดูแบบเต็มจอเพื่อความชัดเจน" 
+                                    desc="หากตัวอักษรหรือวิดีโอมีขนาดเล็กเกินไป สามารถเลื่อนลงมาด้านล่างสุดของหน้าต่างบทเรียน แล้วกดลิงก์ 'เปิดเต็มจอ' เพื่อดูในมุมมองที่กว้างและสบายตาขึ้น"
+                                    imageDesc="หน้าจอแสดงปุ่มเปิดเต็มจอ"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772897821/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%9A%E0%B8%97%E0%B9%80%E0%B8%A3%E0%B8%B5%E0%B8%A2%E0%B8%99/S__42680345_0_ux5d15.jpg"
+                                />
+                            </>
+                        );
+
+                    case 'menu_news':
+                        return (
+                            <>
+                                <TopicHeader 
+                                    title="ข่าวสารประชาสัมพันธ์" 
+                                    icon={<Megaphone size={32} />} 
+                                    colorClass="bg-pink-100 text-pink-600"
+                                    desc="ติดตามประกาศสำคัญ กิจกรรม และข่าวสารล่าสุดจากศูนย์พัฒนาเด็กเล็กเทศบาลตำบลหัวดง"
+                                />
+                                <StepCard 
+                                    number="1" 
+                                    colorClass="bg-pink-500"
+                                    title="เข้าสู่เมนู ข่าวสาร" 
+                                    desc="แตะที่ไอคอนรูปโทรโข่ง (ข่าวสาร) บนหน้าจอหลัก เพื่อเข้าดูอัปเดตประกาศต่างๆ จากทางศูนย์ฯ"
+                                    imageDesc="ชี้ที่ปุ่มเมนูข่าวสาร"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772898171/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%82%E0%B9%88%E0%B8%B2%E0%B8%A7%E0%B8%AA%E0%B8%B2%E0%B8%A3/S__42680347_0_x07ti3.jpg"
+                                />
+                                <StepCard 
+                                    number="2" 
+                                    colorClass="bg-pink-500"
+                                    title="เลื่อนดูรูปภาพประกาศ" 
+                                    desc="ประกาศบางเรื่องอาจมีรูปภาพหลายใบ ให้ใช้นิ้วปัดซ้าย-ขวา (Swipe) ที่บริเวณรูปภาพนั้นๆ เพื่อดูรูปถัดไปหรือรูปก่อนหน้าได้เลย"
+                                    imageDesc="ภาพแสดงสัญลักษณ์การใช้นิ้วปัดซ้ายขวาบนหน้าจอ"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772898172/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%82%E0%B9%88%E0%B8%B2%E0%B8%A7%E0%B8%AA%E0%B8%B2%E0%B8%A3/S__42680348_0_ogemxt.jpg"
+                                />
+                                <StepCard 
+                                    number="3" 
+                                    colorClass="bg-pink-500"
+                                    title="การเปิดอ่านแบบมุมมองปกติ" 
+                                    desc="เนื่องจากการแสดงผลบนแอปมือถืออาจมีพื้นที่จำกัด หากต้องการดูข่าวสารทั้งหมดแบบเต็มตา ให้เลื่อนลงมาล่างสุดแล้วกดลิงก์ 'เปิดเต็มจอเพื่อดูมุมมองปกติ'"
+                                    imageDesc="หน้าจอแสดงลิงก์เปิดเต็มจอเพื่อดูมุมมองปกติ"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772898172/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%82%E0%B9%88%E0%B8%B2%E0%B8%A7%E0%B8%AA%E0%B8%B2%E0%B8%A3/S__42680349_0_rzxrs7.jpg"
+                                />
+                            </>
+                        );
+
+                    case 'menu_calendar':
+                        return (
+                            <>
+                                <TopicHeader 
+                                    title="ปฏิทินกิจกรรม" 
+                                    icon={<Calendar size={32} />} 
+                                    colorClass="bg-orange-100 text-orange-600"
+                                    desc="ติดตามวันหยุด และกิจกรรมสำคัญของศูนย์ฯ ได้ง่ายๆ ผ่านปฏิทินในแอปครับ"
+                                />
+                                <StepCard 
+                                    number="1" 
+                                    colorClass="bg-orange-500"
+                                    title="ดูภาพรวมปฏิทิน" 
+                                    desc="เข้าเมนู 'กิจกรรม' หรือแตะปุ่มปฏิทินด้านล่าง จะเห็นปฏิทินประจำเดือน วันที่มีสีสันต่างๆ หมายถึงวันที่มีกิจกรรมหรือวันหยุด"
+                                    imageDesc="หน้าจอแสดงปฏิทินแบบเต็มเดือน"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772898646/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%81%E0%B8%B4%E0%B8%88%E0%B8%81%E0%B8%A3%E0%B8%A3%E0%B8%A1/S__42680352_0_igrafq.jpg"
+                                />
+                                <StepCard 
+                                    number="2" 
+                                    colorClass="bg-orange-500"
+                                    title="ความหมายของสีต่างๆ" 
+                                    desc="สีแดง: วันหยุดราชการ / สีเขียว: วันเปิดเทอมหรือกิจกรรมการเรียน / สีเหลือง: กิจกรรมพิเศษ"
+                                    imageDesc="ภาพขยายแสดงสีสันบนวันที่ในปฏิทิน"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772898647/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%81%E0%B8%B4%E0%B8%88%E0%B8%81%E0%B8%A3%E0%B8%A3%E0%B8%A1/S__42680353_0_egcq7q.jpg"
+                                />
+                                <StepCard 
+                                    number="3" 
+                                    colorClass="bg-orange-500"
+                                    title="แตะเพื่อดูรายละเอียด" 
+                                    desc="เมื่อแตะที่วันที่ในปฏิทิน ระบบจะไฮไลท์วันที่นั้น และแสดงรายละเอียดกิจกรรมของวันนั้นให้เห็นอย่างชัดเจนในกล่องด้านล่าง"
+                                    imageDesc="หน้าจอแสดงการแตะวันที่ และแสดงข้อความกิจกรรมด้านล่าง"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772898648/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%81%E0%B8%B4%E0%B8%88%E0%B8%81%E0%B8%A3%E0%B8%A3%E0%B8%A1/S__42680354_0_ebmvlz.jpg"
+                                />
+                            </>
+                        );
+
+                    case 'menu_contact':
+                        return (
+                            <>
+                                <TopicHeader 
+                                    title="การติดต่อ & แจ้งปัญหา" 
+                                    icon={<Phone size={32} />} 
+                                    colorClass="bg-teal-100 text-teal-600"
+                                    desc="ช่องทางการติดต่อสื่อสารระหว่างผู้ปกครองและศูนย์ฯ"
+                                />
+                                <StepCard 
+                                    number="1" 
+                                    colorClass="bg-teal-500"
+                                    title="เข้าสู่เมนู ติดต่อ" 
+                                    desc="แตะที่ไอคอนรูปโทรศัพท์ (ติดต่อ) บนหน้าจอหลักของแอปพลิเคชัน"
+                                    imageDesc="ชี้ที่ปุ่มเมนูติดต่อ"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772899458/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%95%E0%B8%B4%E0%B8%94%E0%B8%95%E0%B9%88%E0%B8%AD/S__42680356_0_jcydh7.jpg"
+                                />
+                                <StepCard 
+                                    number="2" 
+                                    colorClass="bg-teal-500"
+                                    title="ติดต่อผ่านโทรศัพท์" 
+                                    desc="ในเมนู 'ติดต่อ' จะมีปุ่มเบอร์โทรศัพท์ของเทศบาลตำบลหัวดง เมื่อแตะที่ปุ่ม ระบบจะเปิดหน้าระบบโทรศัพท์ของคุณให้พร้อมโทรออกทันที"
+                                    imageDesc="หน้าจอแสดงปุ่มโทรศัพท์ และการเด้งไปหน้าโทรออก"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772899459/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%95%E0%B8%B4%E0%B8%94%E0%B8%95%E0%B9%88%E0%B8%AD/S__42680357_0_b0fpqb.jpg"
+                                />
+                                <StepCard 
+                                    number="3" 
+                                    colorClass="bg-teal-500"
+                                    title="แจ้งเรื่องร้องทุกข์ ผ่าน LINE" 
+                                    desc="สามารถแตะปุ่ม 'คลิกเพิ่มเพื่อน LINE' เพื่อเปิดแอป LINE และเพิ่มเพื่อนกับ ทต.หัวดง (@541kcjov) เพื่อแจ้งเรื่องร้องทุกข์หรือขอรับบริการออนไลน์ได้เลยครับ"
+                                    imageDesc="หน้าจอแสดงปุ่มเพิ่มเพื่อน LINE และหน้าจอแอป LINE"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772899460/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%95%E0%B8%B4%E0%B8%94%E0%B8%95%E0%B9%88%E0%B8%AD/S__42680358_0_e8sblz.jpg"
+                                />
+                                <StepCard 
+                                    number="4" 
+                                    colorClass="bg-teal-500"
+                                    title="ใช้เครื่องอื่นสแกน QR Code" 
+                                    desc="หากคุณเปิดแอปบนแท็บเล็ต หรือคอมพิวเตอร์ สามารถนำมือถืออีกเครื่องมา สแกน QR Code ของ LINE ที่แสดงบนหน้าจอ เพื่อเพิ่มเพื่อนได้เช่นกัน (สามารถแตะที่รูป QR เพื่อขยายใหญ่ได้)"
+                                    imageDesc="หน้าจอแสดงรูป QR Code LINE ขนาดใหญ่"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772899461/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%95%E0%B8%B4%E0%B8%94%E0%B8%95%E0%B9%88%E0%B8%AD/S__42680359_0_eettzm.jpg"
+                                />
+                            </>
+                        );
+
+                    case 'menu_itinfo':
+                        return (
+                            <>
+                                <TopicHeader 
+                                    title="ข้อมูลสารสนเทศ" 
+                                    icon={<Monitor size={32} />} 
+                                    colorClass="bg-violet-100 text-violet-600"
+                                    desc="ระบบรวบรวมข้อมูลและสถิติต่างๆ ของสถานศึกษา"
+                                />
+                                <StepCard 
+                                    number="1" 
+                                    colorClass="bg-violet-500"
+                                    title="เข้าสู่เมนู ข้อมูลสารสนเทศ" 
+                                    desc="แตะที่ไอคอนรูปหน้าจอคอมพิวเตอร์ (ข้อมูลสารสนเทศ) บนหน้าจอหลัก"
+                                    imageDesc="ชี้ที่ปุ่มเมนูข้อมูลสารสนเทศ"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772899848/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%AA%E0%B8%B2%E0%B8%A3%E0%B8%AA%E0%B8%99%E0%B9%80%E0%B8%97%E0%B8%A8/S__42680361_0_e4qsmo.jpg"
+                                />
+                                <StepCard 
+                                    number="2" 
+                                    colorClass="bg-violet-500"
+                                    title="ดูข้อมูลและสถิติ" 
+                                    desc="ระบบจะแสดงหน้าต่างระบบสารสนเทศของสถานศึกษา ซึ่งสามารถดูสถิติและข้อมูลที่เกี่ยวข้องได้"
+                                    imageDesc="หน้าจอแสดงระบบข้อมูลสารสนเทศ"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772899849/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%AA%E0%B8%B2%E0%B8%A3%E0%B8%AA%E0%B8%99%E0%B9%80%E0%B8%97%E0%B8%A8/S__42680362_0_eyuaxl.jpg"
+                                />
+                                <StepCard 
+                                    number="3" 
+                                    colorClass="bg-violet-500"
+                                    title="เปิดหน้าจอแบบเต็ม" 
+                                    desc="สามารถกดปุ่ม 'เปิดเต็มจอ ⤢' ด้านล่าง เพื่อดูข้อมูลสถิติในรูปแบบที่ชัดเจนและกว้างขึ้นได้"
+                                    imageDesc="หน้าจอแสดงลิงก์เปิดเต็มจอ"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772899848/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%AA%E0%B8%B2%E0%B8%A3%E0%B8%AA%E0%B8%99%E0%B9%80%E0%B8%97%E0%B8%A8/S__614415_agmvmk.jpg"
+                                />
+                            </>
+                        );
+
+                    case 'menu_health':
+                        return (
+                            <>
+                                <TopicHeader 
+                                    title="ข้อมูลโรคติดต่อ" 
+                                    icon={<ShieldAlert size={32} />} 
+                                    colorClass="bg-rose-100 text-rose-600"
+                                    desc="ติดตามข้อมูลข่าวสารเกี่ยวกับโรคติดต่อและการป้องกัน เพื่อความปลอดภัยของเด็กๆ"
+                                />
+                                <StepCard 
+                                    number="1" 
+                                    colorClass="bg-rose-500"
+                                    title="เข้าสู่เมนู โรคติดต่อ" 
+                                    desc="แตะที่ไอคอนรูปโล่ป้องกัน (โรคติดต่อ) บนหน้าจอหลัก"
+                                    imageDesc="ชี้ที่ปุ่มเมนูโรคติดต่อ"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772900120/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B9%82%E0%B8%A3%E0%B8%84%E0%B8%95%E0%B8%B4%E0%B8%94%E0%B8%95%E0%B9%88%E0%B8%AD/S__42680364_0_qu6eqt.jpg"
+                                />
+                                <StepCard 
+                                    number="2" 
+                                    colorClass="bg-rose-500"
+                                    title="อัปเดตสถานการณ์และวิธีป้องกัน" 
+                                    desc="อ่านข้อมูลข่าวสาร การเฝ้าระวัง และวิธีป้องกันโรคติดต่อต่างๆ ที่ทางศูนย์ฯ นำมาแจ้งเตือน"
+                                    imageDesc="หน้าจอแสดงข้อมูลการป้องกันโรคติดต่อ"
+                                    imgSrc={[
+                                        "https://res.cloudinary.com/dygneumft/image/upload/v1772900121/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B9%82%E0%B8%A3%E0%B8%84%E0%B8%95%E0%B8%B4%E0%B8%94%E0%B8%95%E0%B9%88%E0%B8%AD/S__42680365_0_nhpogj.jpg",
+                                        "https://res.cloudinary.com/dygneumft/image/upload/v1772900264/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B9%82%E0%B8%A3%E0%B8%84%E0%B8%95%E0%B8%B4%E0%B8%94%E0%B8%95%E0%B9%88%E0%B8%AD/S__42680366_fo2tuc.jpg"
+                                    ]}
+                                />
+                            </>
+                        );
+
+                    case 'menu_links':
+                        return (
+                            <>
+                                <TopicHeader 
+                                    title="ลิงก์ที่เกี่ยวข้อง" 
+                                    icon={<LinkIcon size={32} />} 
+                                    colorClass="bg-fuchsia-100 text-fuchsia-600"
+                                    desc="รวบรวมลิงก์เว็บไซต์ของหน่วยงานที่เกี่ยวข้อง เพื่อความสะดวกในการติดต่อและค้นหาข้อมูล"
+                                />
+                                <StepCard 
+                                    number="1" 
+                                    colorClass="bg-fuchsia-500"
+                                    title="เข้าสู่เมนู ลิงก์" 
+                                    desc="แตะที่ไอคอนรูปลิงก์เชื่อมโยง (ลิงก์) บนหน้าจอหลัก"
+                                    imageDesc="ชี้ที่ปุ่มเมนูลิงก์"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772901486/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%A5%E0%B8%B4%E0%B8%87%E0%B8%81%E0%B9%8C/S__42680373_0_mutxxz.jpg"
+                                />
+                                <StepCard 
+                                    number="2" 
+                                    colorClass="bg-fuchsia-500"
+                                    title="เลือกเว็บไซต์ที่ต้องการ" 
+                                    desc="แตะที่ชื่อหน่วยงาน เช่น เทศบาลตำบลหัวดง, กองการศึกษา ฯลฯ ระบบจะพาไปยังเว็บไซต์นั้นๆ ทันที (หากกดไม่ไป ให้แตะที่ปุ่มค้างไว้แล้วเลือก 'เปิดลิงก์')"
+                                    imageDesc="หน้าจอแสดงรายการปุ่มลิงก์ต่างๆ"
+                                    imgSrc="https://res.cloudinary.com/dygneumft/image/upload/v1772901487/%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B9%81%E0%B8%AD%E0%B8%9B%20%E0%B8%A8%E0%B8%9E%E0%B8%94/%E0%B8%A5%E0%B8%B4%E0%B8%87%E0%B8%81%E0%B9%8C/S__42680374_0_kacjjo.jpg"
+                                />
+                            </>
+                        );
+
+                    case 'menu_appinfo':
+                        return (
+                            <>
+                                <TopicHeader 
+                                    title="เกี่ยวกับ App" 
+                                    icon={<HelpCircle size={32} />} 
+                                    colorClass="bg-sky-100 text-sky-600"
+                                    desc="เมนูสำหรับดูข้อมูลแอปพลิเคชัน สแกนติดตั้ง และคู่มือการใช้งาน"
+                                />
+                                <StepCard 
+                                    number="1" 
+                                    colorClass="bg-sky-500"
+                                    title="เข้าสู่เมนู เกี่ยวกับ App" 
+                                    desc="แตะที่ไอคอนรูปเครื่องหมายคำถาม (เกี่ยวกับ App) บนหน้าจอหลัก"
+                                    imageDesc="ชี้ที่ปุ่มเมนูเกี่ยวกับ App"
+                                />
+                                <StepCard 
+                                    number="2" 
+                                    colorClass="bg-sky-500"
+                                    title="ติดตั้งแอปพลิเคชัน" 
+                                    desc="ในหน้านี้จะแสดง QR Code สำหรับติดตั้งแอปพลิเคชัน และปุ่มสำหรับกดลิงก์เพื่อไปหน้าติดตั้งแอปพลิเคชัน"
+                                    imageDesc="หน้าจอแสดง QR Code และปุ่มติดตั้ง"
+                                />
+                                <StepCard 
+                                    number="3" 
+                                    colorClass="bg-sky-500"
+                                    title="เปิดคู่มือการใช้งาน" 
+                                    desc="สามารถกดปุ่ม 'เปิดคู่มือ (PDF)' เพื่อศึกษาขั้นตอนการติดตั้งและการใช้งานอย่างละเอียด"
+                                    imageDesc="หน้าจอแสดงปุ่มเปิดคู่มือการใช้งาน"
+                                />
+                            </>
+                        );
+
+                    default:
+                        return <div>กำลังพัฒนา...</div>;
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col md:flex-row bg-[#FFF9F0]">
+                    {/* Mobile Header & Menu Toggle */}
+                    <div className="md:hidden sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm p-4 flex justify-between items-center border-b-4 border-slate-100">
+                        <div className="flex items-center gap-3">
+                            <img src="https://res.cloudinary.com/dygneumft/image/upload/v1767149852/logo%20%E0%B8%A8%E0%B8%9E%E0%B8%94/66597422_390220828293072_2595301866271145984_n_oxazyt.jpg" alt="Logo" className="w-10 h-10 rounded-full border-2 border-slate-200" />
+                            <h1 className="font-black text-slate-700 text-lg">คู่มือแอป ศพด.</h1>
+                        </div>
+                        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 bg-kid-yellow text-amber-800 rounded-xl shadow-sm">
+                            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                        </button>
+                    </div>
+
+                    {/* Sidebar Navigation */}
+                    <aside className={`fixed md:sticky top-0 left-0 h-full w-full md:w-80 bg-white shadow-xl z-40 transition-transform duration-300 ease-in-out border-r-4 border-slate-100 flex flex-col ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+                        <div className="p-6 border-b-2 border-dashed border-slate-200 hidden md:block text-center">
+                            <img src="https://res.cloudinary.com/dygneumft/image/upload/v1767149852/logo%20%E0%B8%A8%E0%B8%9E%E0%B8%94/66597422_390220828293072_2595301866271145984_n_oxazyt.jpg" alt="Logo" className="w-20 h-20 rounded-full mx-auto mb-3 border-4 border-slate-100 shadow-sm" />
+                            <h1 className="font-black text-xl text-slate-800">คู่มือการใช้งานแอป</h1>
+                            <p className="text-sm font-bold text-kid-blue">ศพด. ทต.หัวดง</p>
+                        </div>
+                        
+                        <div className="flex-1 overflow-y-auto p-4 py-4">
+                            <h3 className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-wider mb-3 sm:mb-4 px-2 sm:px-4">สารบัญหัวข้อ</h3>
+                            <nav className="space-y-1 sm:space-y-2">
+                                {manualSections.map((section) => (
+                                    <button
+                                        key={section.id}
+                                        onClick={() => setActiveTab(section.id)}
+                                        className={`w-full flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl transition-all duration-200 text-left ${activeTab === section.id ? 'tab-active' : 'hover:bg-slate-50 text-slate-600'}`}
+                                    >
+                                        <div className={`p-2 rounded-lg sm:rounded-xl transition-colors shrink-0 ${activeTab === section.id ? `${section.bg} ${section.color}` : 'bg-slate-100 text-slate-500'}`}>
+                                            {React.cloneElement(section.icon, { size: 20 })}
+                                        </div>
+                                        <span className={`font-bold text-xs sm:text-sm leading-tight ${activeTab === section.id ? 'text-slate-800' : ''}`}>{section.title}</span>
+                                        {activeTab === section.id && <CheckCircle size={16} className={`ml-auto shrink-0 ${section.color}`} />}
+                                    </button>
+                                ))}
+                            </nav>
+                        </div>
+                        <div className="p-4 bg-slate-50 border-t-2 border-dashed border-slate-200">
+                            <a href="https://child-huadong.glide.page" target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full bg-kid-blue text-white py-2.5 sm:py-3 rounded-xl font-bold hover:bg-blue-500 transition shadow-sm text-sm">
+                                <Smartphone size={18} className="shrink-0" /> เปิดแอปพลิเคชัน
+                            </a>
+                        </div>
+                    </aside>
+
+                    {/* Main Content Area */}
+                    <main className="flex-1 p-3 sm:p-4 md:p-8 w-full max-w-4xl mx-auto min-h-[100vh]">
+                        {renderContent()}
+                        
+                        {/* Footer spacing for mobile */}
+                        <div className="h-20 md:hidden"></div>
+                    </main>
+
+                    {/* Overlay for mobile menu */}
+                    {isMobileMenuOpen && (
+                        <div className="fixed inset-0 bg-black/50 z-30 md:hidden backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}></div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
